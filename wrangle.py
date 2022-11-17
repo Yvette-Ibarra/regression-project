@@ -3,6 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 
+from sklearn.model_selection import train_test_split
+
 ########################################## Acquire ##########################################
 def fresh_zillow_data():
     '''
@@ -40,17 +42,6 @@ def get_zillow_data(new = False):
             bathroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt, yearbuilt, taxamount, fips 
         '''
    
-         # sql query for acquisition
-        sql_query = """
-        SELECT calculatedfinishedsquarefeet,bathroomcnt,bedroomcnt,taxvaluedollarcnt,yearbuilt, fireplacecnt,
-        decktypeid, poolcnt, garagecarcnt,fips
-
-        FROM properties_2017
-        LEFT JOIN propertylandusetype USING(propertylandusetypeid)
-        LEFT JOIN predictions_2017 USING(parcelid)
-        WHERE (propertylandusetype.propertylandusedesc LIKE ('%%Single%%')) 
-            AND (predictions_2017.transactiondate like '2017%%');
-        """
 
         filename = 'zillow.csv'
 
@@ -65,7 +56,7 @@ def get_zillow_data(new = False):
             df = pd.read_csv(filename)
 
         return df
-################################################## Prepare Data #######################
+################################################## Prepare Data ##################################
 def zillow_prep(df):
     
     # remove outliers
@@ -75,16 +66,22 @@ def zillow_prep(df):
     df = df[~(df.bathrooms==0) & ~(df.bedrooms ==0)]
     
     # process nulls in luxury features:
-    df = process_fancy_features(df)
+    df = process_optional_features(df)
     
     # drop nulls
     df = df.dropna()
+
+    # feature engineer: Home_age and optiona_feature
+    df = new_features(df)
+
+    #encode categorical features or turn to 0 & 1:
+    df = encode_features(df)
 
     return df
 
 
 
-###################################### Outliers ##########################
+###################################### Outliers 
 def handle_outliers(df):
     """Manually handle outliers '"""
     df = df[df.bathrooms <= 6]
@@ -97,12 +94,47 @@ def handle_outliers(df):
 
 
 
-####################################### Features ###########################
-def process_fancy_features(df):
+####################################### Features 
+def process_optional_features(df):
     
     columns = ['fireplace','deck','pool','garage']    
     for feature in columns:
         df[feature]=df[feature].replace(r"^\s*$", np.nan, regex=True)     
-        # fill fancy features with 0 assumption that if it was not mark it did not exist
+        # fill optional features with 0 assumption that if it was not mark it did not exist
         df[feature] = df[feature].fillna(0)
     return df
+
+def new_features(df):
+    #Creating new column for home age using year_built, casting as float
+    df['home_age'] = 2017- df['yearbuilt']
+    df["home_age"] = df["home_age"].astype('float')
+    
+    df['optional_features'] = (df.garage==1)|(df.deck == 1)|(df.pool == 1)|(df.fireplace == 1)
+    
+    return df
+    
+def encode_features(df):
+    df.fireplace = df.fireplace.replace({2:1, 3:1, 4:1, 5:1})
+    df.deck= df.deck.replace({66:1})
+    df.garage = df.garage.replace({2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1, 13:1,14:1})
+    df.optional_features = df.optional_features.replace({False:0, True: 1})
+    temp = pd.get_dummies(df['county'], drop_first=False)
+    df = pd.concat([df, temp],axis =1)
+    return df 
+
+###################################### Split Data
+
+def split_data(df):
+    '''
+    split_data takes in data Frame and splits into  train , validate, test.
+    The split is 20% test 80% train/validate. Then 30% of 80% validate and 70% of 80% train.
+    Aproximately (train 56%, validate 24%, test 20%)
+    Returns train, validate, and test 
+    '''
+    # split test data from train/validate
+    train_and_validate, test = train_test_split(df, random_state=123, test_size=.2)
+
+    # split train from validate
+    train, validate = train_test_split(train_and_validate, random_state=123, test_size=.3)
+                                   
+    return train, validate, test
