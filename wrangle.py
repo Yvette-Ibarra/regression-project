@@ -77,6 +77,9 @@ def zillow_prep(df):
     #encode categorical features or turn to 0 & 1:
     df = encode_features(df)
 
+    # rename dummy county to matching county name
+    df = rename_county(df)
+
     return df
 
 
@@ -122,6 +125,11 @@ def encode_features(df):
     df = pd.concat([df, temp],axis =1)
     return df 
 
+def rename_county(df):
+    # 6111 Ventura County, 6059  Orange County, 6037 Los Angeles County 
+    df = df.rename(columns={6111.0: 'ventura_county',6059.0: 'orange_county',
+            6037: 'los_angeles_county'}) 
+    return df
 ###################################### Split Data
 
 def split_data(df):
