@@ -5,10 +5,14 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def model_data_prep(train, validate,test):
+    train = train.drop(columns=['yearbuilt','fireplace', 'deck', 'pool', 'garage'])
+    validate = validate.drop(columns=['yearbuilt','fireplace', 'deck', 'pool', 'garage'])
+    test = test.drop(columns=['yearbuilt','fireplace', 'deck', 'pool', 'garage'])
+    
     X_train_scaled, X_validate_scaled, X_test_scaled = scale_data(train, 
                validate, 
                test, 
-               columns_to_scale=['squarefeet','bathrooms','bedrooms','yearbuilt','home_age'])
+               columns_to_scale=['squarefeet','bathrooms','bedrooms','home_age'])
     # Setup X and y
     X_train_scaled = X_train_scaled.drop(columns=['home_value','county'])
     y_train = train.home_value
@@ -26,7 +30,7 @@ def model_data_prep(train, validate,test):
 def scale_data(train, 
                validate, 
                test, 
-               columns_to_scale=['squarefeet','bathrooms','bedrooms','yearbuilt','home_age']):
+               columns_to_scale=['squarefeet','bathrooms','bedrooms','home_age']):
     '''
     scale_data takes in train , validate, test data  and returns their scaled counterparts.
     '''
@@ -50,5 +54,6 @@ def scale_data(train,
                                                  columns=test[columns_to_scale].columns.values).set_index([test.index.values])
     
     return train_scaled, validate_scaled, test_scaled
+
 
 
