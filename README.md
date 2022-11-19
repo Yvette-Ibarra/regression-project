@@ -37,19 +37,21 @@ My initial hypothesis is that bathrooms  and squarefeet are strong drivers of ho
 # Data Dictionary
 
  Feature          | Description|
-| --------------- | ---------------------------------- |
-| Bathrooms:   |  Number of bathrooms in home including fractional bathrooms |
-| Bedrooms: | Number of bedrooms in home  |
-| Squarefeet:  | Calculated total finished living area of the home |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
+| :---------------: | :---------------------------------- |
+| home_value | The total tax assessed value of the parcel  |
+| squarefeet:  | Calculated total finished living area of the home |
+| bathrooms:   |  Number of bathrooms in home including fractional bathrooms |
+| bedrooms: | Number of bedrooms in home  |
+| yearbuilt:  |  The Year the principal residence was built   |
+| fireplace: | fireplace on property (if any) |
+| deck:  | deck on property (if any) |
+| pool:  | pool on property (if any) |
+| garage: | garage on property (if any) |
+| county: | FIPS code for californian counties: 6111 Ventura County, 6059  Orange County, 6037 Los Angeles County |
+| home_age: | The age of the home in 2017 |
+| optional_features: | If a home has any of the follwing: fireplace, deck, pool, garage it is noted as 1 |
+| additional features: | Encoded and values for categorical data |
+
 # Steps to Reproduce
 1. Clone this repository
 2. Get Zillow data from Codeup Database:
