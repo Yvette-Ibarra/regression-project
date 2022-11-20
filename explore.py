@@ -38,7 +38,7 @@ def get_loliplot(train):
     plt.xlabel('')
     plt.ylabel('Average Home Value', fontsize =20)
     plt.title('Home value increases with home features',fontsize =25)
-
+    axes.yaxis.set_major_formatter(ticker.EngFormatter())
     plt.xticks(loli['home_feature'],fontsize = 15)
     plt.yticks(fontsize = 15 )
     axes.set_yticks(ticks=[0,175_000, 350_000,525_000,700_000])
@@ -191,7 +191,7 @@ def home_scatterplot(train):
     plt.yticks(ticks=[0,500_000, 1_000_000,1_500_000,2_000_000])
 
     # create title 
-    plt.title('Older Home less Home Value',fontsize=25,fontweight=100);
+    plt.title('Older Home decrease in Home Value',fontsize=25,fontweight=100);
 
 ###################################### homeage setup
 def setup_homeage(train):
