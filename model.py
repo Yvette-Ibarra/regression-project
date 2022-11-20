@@ -1,7 +1,7 @@
 import pandas as pd
-
-
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error,explained_variance_score
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
 
 
 def model_data_prep(train, validate,test):
@@ -54,6 +54,163 @@ def scale_data(train,
                                                  columns=test[columns_to_scale].columns.values).set_index([test.index.values])
     
     return train_scaled, validate_scaled, test_scaled
+############################################### MODELS ######################################
+
+def poly_d2(X_train,y_train): 
+    # Generate polynomial features  
+    poly2 = PolynomialFeatures(degree=2, include_bias=False, interaction_only=False)
+    poly2.fit(X_train)
+    X_train_poly2 = pd.DataFrame(
+        poly2.transform(X_train),
+        columns=poly2.get_feature_names(X_train.columns),
+        index=X_train.index, )
+ 
+    # 2. Use the features
+    lm2 = LinearRegression()
+    lm2.fit(X_train_poly2, y_train)
+
+    return lm2, X_train_poly2,poly2
+
+def poly_d2i(X_train, y_train):    
+    # 1. Generate Polynomial Features
+    poly2i = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
+    poly2i.fit(X_train)
+    X_train_poly2i = pd.DataFrame(
+        poly2i.transform(X_train),
+        columns=poly2i.get_feature_names(X_train.columns),
+        index=X_train.index,)
+
+    # 2. Use the features
+    lm2i = LinearRegression()
+    lm2i.fit(X_train_poly2i, y_train)
+
+    return lm2i,X_train_poly2i,poly2i
 
 
+def poly_d3(X_train, y_train):  
+    # 1. Generate Polynomial Features
+    poly3 = PolynomialFeatures(degree=3, include_bias=False, interaction_only=False)
+    poly3.fit(X_train)
+    X_train_poly3 = pd.DataFrame(
+        poly3.transform(X_train),
+        columns=poly3.get_feature_names(X_train.columns),
+        index=X_train.index, )
 
+    # 2. Use the features
+    lm3 = LinearRegression()
+    lm3.fit(X_train_poly3, y_train)
+
+    return lm3,X_train_poly3,poly3
+
+def poly_d4(X_train, y_train): 
+    # 1. Generate Polynomial Features
+    poly4 = PolynomialFeatures(degree=4, include_bias=False, interaction_only=False)
+    poly4.fit(X_train)
+    X_train_poly4 = pd.DataFrame(
+        poly4.transform(X_train),
+        columns=poly4.get_feature_names(X_train.columns),
+        index=X_train.index,)
+  
+    # 2. Use the features
+    lm4 = LinearRegression()
+    lm4.fit(X_train_poly4, y_train)
+
+    return lm4,X_train_poly4,poly4
+
+##################################### predictions data frame ##########################
+
+def predictions(X_train,y_train,X_validate,y_validate,X_test, y_test):
+    # get fitted models
+    lm2, X_train_poly2, poly2 = poly_d2(X_train,y_train)
+    lm3, X_train_poly3,poly3 = poly_d3(X_train, y_train)
+    lm2i, X_train_poly2i,poly2i = poly_d2i(X_train, y_train)
+    lm4, X_train_poly4,poly4 = poly_d4(X_train, y_train)
+
+    # set up dataframe for predictions, add actual values
+    train_pred = pd.DataFrame({
+        'actual': y_train
+    }) 
+    validate_pred = pd.DataFrame({
+        'actual': y_validate
+    }) 
+
+    test_pred = pd.DataFrame({
+        'actual': y_test
+    }) 
+
+    # add a baseline model
+    #train_pred['baseline_mean'] = y_train.mean()
+    #validate_pred['baseline_mean'] = y_train.mean()
+    #test_pred['baseline_mean'] = y_train.mean()
+    
+    #add baselin median
+    train_pred['baseline_median'] = y_train.median()
+    validate_pred['baseline_median'] = y_train.median()
+    test_pred['baseline_median'] = y_train.median()
+
+
+    # Add degree 2 to data frame
+    train_pred['poly_d2'] = lm2.predict(X_train_poly2)
+    X_validate_poly2 = poly2.transform(X_validate)
+    validate_pred['poly_d2'] = lm2.predict(X_validate_poly2)
+  
+     
+    # Add degree 2 interactions only to data frame
+    train_pred['Ipoly_d2'] = lm2i.predict(X_train_poly2i)
+    X_validate_poly2i = poly2i.transform(X_validate)
+    validate_pred['Ipoly_d2'] = lm2i.predict(X_validate_poly2i)
+   
+
+    # Add degree 3  to data frame
+    train_pred['poly_d3'] = lm3.predict(X_train_poly3)
+    X_validate_poly3 = poly3.transform(X_validate)
+    validate_pred['poly_d3'] = lm3.predict(X_validate_poly3)
+
+    # add test to degree 3
+    X_test_poly3 = poly3.transform(X_test)
+    test_pred['poly_d3'] = lm3.predict(X_test_poly3)
+
+    # Add degree 4  to data frame
+    train_pred['poly_d4'] = lm4.predict(X_train_poly4)
+    X_validate_poly4 = poly4.transform(X_validate)
+    validate_pred['poly_d4'] = lm4.predict(X_validate_poly4)
+  
+    
+    return train_pred, validate_pred, test_pred
+
+######################################### evaluation metrics ####################################
+def evaluate_metrics(df, col,actual):
+    MSE = mean_squared_error(actual, df[col])
+    SSE = MSE * len(df)
+    RMSE = MSE ** .5
+    ESS = ((df[col] - actual.mean())**2).sum()
+    TSS = ESS + SSE
+    R2 = explained_variance_score(actual, df[col])
+    return MSE, SSE, RMSE,ESS, TSS,R2
+
+def metric_train(train_pred, y_train): 
+    col = train_pred.columns.to_list()
+    metric_train = pd.DataFrame(columns =['model','RMSE','R2'])
+    for i in col:
+        MSE,SSE, RMSE, ESS, TSS, R2 = evaluate_metrics(train_pred, i , y_train)
+        # sklearn.metrics.explained_variance_score
+        RMSE = RMSE.round()
+        metric_train= metric_train.append({
+                        'model': i,
+                         'RMSE':RMSE,
+                         'R2':R2},ignore_index=True)
+    return metric_train.sort_values(by='RMSE')
+
+def metric_validate(validate_pred, y_validate): 
+    col = validate_pred.columns.to_list()
+    metric_val = pd.DataFrame(columns =['model','RMSE','R2'])
+    for i in col:
+        MSE,SSE, RMSE, ESS, TSS, R2 = evaluate_metrics(validate_pred, i , y_validate)
+        # sklearn.metrics.explained_variance_score
+        RMSE = RMSE.round()
+        metric_val= metric_val.append({
+                        'model': i,
+                         'RMSE':RMSE,
+                         'R2':R2},ignore_index=True)
+    return metric_val.sort_values(by='RMSE')
+    
