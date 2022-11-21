@@ -58,6 +58,7 @@ def get_zillow_data(new = False):
         return df
 ################################################## Prepare Data ##################################
 def zillow_prep(df):
+    ''' This function takes in a data frame and preps data frame. returns dataframe'''
     
     # remove outliers
     df = handle_outliers(df)
@@ -87,10 +88,9 @@ def zillow_prep(df):
 ###################################### Outliers 
 def handle_outliers(df):
     """Manually handle outliers '"""
-    df = df[df.bathrooms <= 6]
-    
-    df = df[df.bedrooms <= 6]
-    
+    # drop bathrooms, bedrooms and home_value
+    df = df[df.bathrooms <= 6] 
+    df = df[df.bedrooms <= 6] 
     df = df[df.home_value <= 1_750_000]
     
     return df
@@ -99,7 +99,9 @@ def handle_outliers(df):
 
 ####################################### Features 
 def process_optional_features(df):
-    
+    ''' process_optional_features will take in zillow data and clean up columns
+    fireplace, deck, pool, garage by replacing nulls with 0
+    returns data frame'''
     columns = ['fireplace','deck','pool','garage']    
     for feature in columns:
         df[feature]=df[feature].replace(r"^\s*$", np.nan, regex=True)     
@@ -108,6 +110,7 @@ def process_optional_features(df):
     return df
 
 def new_features(df):
+    ''' new_features takes in dataframe'''
     #Creating new column for home age using year_built, casting as float
     df['home_age'] = 2017- df['yearbuilt']
     df["home_age"] = df["home_age"].astype('float')
