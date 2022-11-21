@@ -190,27 +190,51 @@ def evaluate_metrics(df, col,actual):
 
 def metric_train(train_pred, y_train): 
     col = train_pred.columns.to_list()
-    metric_train = pd.DataFrame(columns =['model','RMSE','R2'])
+    metric_train = pd.DataFrame(columns =['model','train_RMSE','train_R2'])
     for i in col:
         MSE,SSE, RMSE, ESS, TSS, R2 = evaluate_metrics(train_pred, i , y_train)
         # sklearn.metrics.explained_variance_score
         RMSE = RMSE.round()
         metric_train= metric_train.append({
                         'model': i,
-                         'RMSE':RMSE,
-                         'R2':R2},ignore_index=True)
-    return metric_train.sort_values(by='RMSE')
+                         'train_RMSE':RMSE,
+                         'train_R2':R2},ignore_index=True)
+    return metric_train
 
 def metric_validate(validate_pred, y_validate): 
     col = validate_pred.columns.to_list()
-    metric_val = pd.DataFrame(columns =['model','RMSE','R2'])
+    metric_val = pd.DataFrame(columns =['model','val_RMSE','val_R2'])
     for i in col:
         MSE,SSE, RMSE, ESS, TSS, R2 = evaluate_metrics(validate_pred, i , y_validate)
         # sklearn.metrics.explained_variance_score
         RMSE = RMSE.round()
         metric_val= metric_val.append({
                         'model': i,
-                         'RMSE':RMSE,
-                         'R2':R2},ignore_index=True)
-    return metric_val.sort_values(by='RMSE')
+                         'val_RMSE':RMSE,
+                         'val_R2':R2},ignore_index=True)
+    return metric_val
     
+def metrics(train_pred,y_train, validate_pred, y_validate):
+    # get models metrics on train
+    train_metric = metric_train(train_pred,y_train)
+    
+    # get models metrics on validata data, sorted by R^2
+    val_metric = metric_validate(validate_pred,y_validate)
+    val_metric.drop(columns='model', inplace = True)
+
+    # concatinate data frames
+    metric = pd.concat([train_metric, val_metric], axis=1)
+    return metric
+
+def metric_test(test_pred, y_test): 
+    col = test_pred.columns.to_list()
+    metric_test = pd.DataFrame(columns =['model','test_RMSE','test_R2'])
+    for i in col:
+        MSE,SSE, RMSE, ESS, TSS, R2 = evaluate_metrics(test_pred, i , y_test)
+        # sklearn.metrics.explained_variance_score
+        RMSE = RMSE.round()
+        metric_test= metric_test.append({
+                        'model': i,
+                         'test_RMSE':RMSE,
+                         'test_R2':R2},ignore_index=True)
+    return metric_test
