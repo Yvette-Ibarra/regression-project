@@ -18,14 +18,12 @@ My initial hypothesis is that bathrooms  and squarefeet are strong drivers of ho
 * Acquire data from Codeup database
 * Prepare data
 * Explore data in search of drivers of home_value
-    * Answer the following initial question
-        * What does the average home look like
-        * Do popular built have a higher home value than the average built.
-        * Do properties with more bathrooms have a higher home value? bedrooms? squarefeet?
-        * What are the average attributes of home whose value that are in the bottom quantile?
-        * Are one stories home more valuable than two story homes.
-        * Does having things like pool, deck, fireplace, garage increase home value?
-        *( maybe look into roomcnt, regionidcounty, propertycountylandusecode, regionzip,fullbathcnt, yearbuilt, calculatedbathbr)
+    * Answer the following initial question:
+        * How do features of a home influence home value?
+        * Does more house equal more home value?
+        * Does county location make a difference in home value?
+        * Is home age a driver of home value?
+
 * Develop a Model to predict home value.
     * Use drivers identified in explore to build predictive models of home value and using Kbest and/or RFE 
     * Evaluate models on train and validate data using RMSE (Root mean square Error)
@@ -59,4 +57,13 @@ My initial hypothesis is that bathrooms  and squarefeet are strong drivers of ho
     * Save a copy env.py file containing Codeup: hostname, username and password
     * Save file in cloned repository
 3.Run notebook
+
+# Takeaways and Conclusions
+* Homes with an optional feature such as deck, pools, garage, fireplace have more value.
+* Home with more bedrooms and bathrooms tend to have more value on average.
+* County location make a difference in home value.
+* Home age has a relationship with home value.
+
 # Recommendations
+Standardize methods of data collection to increase data accuracy; this will likely improve models ability to predict future home values.
+
