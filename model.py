@@ -5,6 +5,9 @@ from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
 
 
 def model_data_prep(train, validate,test):
+    '''model_data_prep takes in train validate,test and scales using scale_data and sets up
+    features and target ready for modeling
+    '''
     train = train.drop(columns=['yearbuilt','fireplace', 'deck', 'pool', 'garage'])
     validate = validate.drop(columns=['yearbuilt','fireplace', 'deck', 'pool', 'garage'])
     test = test.drop(columns=['yearbuilt','fireplace', 'deck', 'pool', 'garage'])
@@ -32,7 +35,8 @@ def scale_data(train,
                test, 
                columns_to_scale=['squarefeet','bathrooms','bedrooms','home_age']):
     '''
-    scale_data takes in train , validate, test data  and returns their scaled counterparts.
+    scale_data takes in train , validate, test data  and returns their scaled counterparts using MinMaxscaler.
+    returns train_scaled, validate_scaled, test_scaled
     '''
     # create copies of our original data
     train_scaled = train.copy()
@@ -57,6 +61,9 @@ def scale_data(train,
 ############################################### MODELS ######################################
 
 def poly_d2(X_train,y_train): 
+    ''' Model poly_d2 is a Polynomial Regressor with degree 2 takes in x_train and y_train and 
+     fits into train data, transforms X_train
+     returns lm2, X_train_poly2, y_train'''
     # Generate polynomial features  
     poly2 = PolynomialFeatures(degree=2, include_bias=False, interaction_only=False)
     poly2.fit(X_train)
@@ -71,7 +78,11 @@ def poly_d2(X_train,y_train):
 
     return lm2, X_train_poly2,poly2
 
-def poly_d2i(X_train, y_train):    
+def poly_d2i(X_train, y_train):  
+    ''' Model poly_d2i is a Polynomial Regressor with degree 2 wit interactions only takes in x_train and y_train and 
+     fits into train data, transforms X_train
+     returns lm2, X_train_poly2, y_train
+    '''  
     # 1. Generate Polynomial Features
     poly2i = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
     poly2i.fit(X_train)
@@ -88,6 +99,10 @@ def poly_d2i(X_train, y_train):
 
 
 def poly_d3(X_train, y_train):  
+    ''' Model poly_d3 is a Polynomial Regressor with degree 3 takes in x_train and y_train and 
+    fits into train data, transforms X_train
+    returns lm2, X_train_poly2, y_train
+    '''    
     # 1. Generate Polynomial Features
     poly3 = PolynomialFeatures(degree=3, include_bias=False, interaction_only=False)
     poly3.fit(X_train)
@@ -103,6 +118,10 @@ def poly_d3(X_train, y_train):
     return lm3,X_train_poly3,poly3
 
 def poly_d4(X_train, y_train): 
+    ''' Model poly_d4 is a Polynomial Regressor with degree 4 takes in x_train and y_train and 
+    fits into train data, transforms X_train
+    returns lm2, X_train_poly2, y_train
+    '''   
     # 1. Generate Polynomial Features
     poly4 = PolynomialFeatures(degree=4, include_bias=False, interaction_only=False)
     poly4.fit(X_train)
@@ -120,6 +139,9 @@ def poly_d4(X_train, y_train):
 ##################################### predictions data frame ##########################
 
 def predictions(X_train,y_train,X_validate,y_validate,X_test, y_test):
+    ''' predictions takes in X_train,y_train,X_validate,y_validate,X_test, y_test)
+    creates a data frame with predictions using models
+    returns train_pred, validate_pred, test_pred'''
     # get fitted models
     lm2, X_train_poly2, poly2 = poly_d2(X_train,y_train)
     lm3, X_train_poly3,poly3 = poly_d3(X_train, y_train)
@@ -180,6 +202,9 @@ def predictions(X_train,y_train,X_validate,y_validate,X_test, y_test):
 
 ######################################### evaluation metrics ####################################
 def evaluate_metrics(df, col,actual):
+    ''' evalate_metrics takes in a dataframe columns and actual(target)
+    calculates MSE, SSE, RMSE, ESS, TSS, R2 and 
+    returns  MSE, SSE, RMSE,ESS, TSS,R2'''
     MSE = mean_squared_error(actual, df[col])
     SSE = MSE * len(df)
     RMSE = MSE ** .5
@@ -189,6 +214,12 @@ def evaluate_metrics(df, col,actual):
     return MSE, SSE, RMSE,ESS, TSS,R2
 
 def metric_train(train_pred, y_train): 
+    ''' metric_train takes in train_pred, y_train and uses evaluate_metrics
+    to calculate RMSE and R2 for each column using evaluate_metrics and creates
+    dataframe with calculations
+    returns metric_train
+    '''
+    # create columns
     col = train_pred.columns.to_list()
     metric_train = pd.DataFrame(columns =['model','train_RMSE','train_R2'])
     for i in col:
@@ -199,9 +230,15 @@ def metric_train(train_pred, y_train):
                         'model': i,
                          'train_RMSE':RMSE,
                          'train_R2':R2},ignore_index=True)
+        
     return metric_train
 
 def metric_validate(validate_pred, y_validate): 
+    ''' metric_validate takes in validate_pred, y_validate and uses evaluate_metrics
+    to calculate RMSE and R2 for each column using evaluate_metrics and creates
+    dataframe with calculations
+    returns metric_validate
+    '''
     col = validate_pred.columns.to_list()
     metric_val = pd.DataFrame(columns =['model','val_RMSE','val_R2'])
     for i in col:
@@ -212,21 +249,31 @@ def metric_validate(validate_pred, y_validate):
                         'model': i,
                          'val_RMSE':RMSE,
                          'val_R2':R2},ignore_index=True)
+        
     return metric_val
     
 def metrics(train_pred,y_train, validate_pred, y_validate):
+    ''' metric takes in train_pred,y_train, validate_pred, y_validate  and concats
+    dataframes of evaluations for final report of models
+    returns metric
+    '''
     # get models metrics on train
     train_metric = metric_train(train_pred,y_train)
     
     # get models metrics on validata data, sorted by R^2
     val_metric = metric_validate(validate_pred,y_validate)
     val_metric.drop(columns='model', inplace = True)
-
+    
     # concatinate data frames
     metric = pd.concat([train_metric, val_metric], axis=1)
     return metric
 
 def metric_test(test_pred, y_test): 
+    ''' metric_test takes in test_pred, y_test and uses evaluate_metrics
+    to calculate RMSE and R2 for each column using evaluate_metrics and creates
+    dataframe with calculations
+    returns metric_test
+    '''
     col = test_pred.columns.to_list()
     metric_test = pd.DataFrame(columns =['model','test_RMSE','test_R2'])
     for i in col:
