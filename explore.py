@@ -176,7 +176,7 @@ def home_scatterplot(train):
     home_df = setup_homeage(train)
     
     # set fig size
-    fig, axes = plt.subplots(figsize=(7,5.5))
+    fig, axes = plt.subplots(figsize=(7,5))
 
     # scatter plot
     g= sns.scatterplot(data = home_df, x='Age',y='Value', color='olive',s=300, marker='1',linewidth=1.5)
@@ -219,3 +219,19 @@ def get_pearsonr_homevalue_vs_homeage(train):
     r, p = stats.pearsonr(train.home_value,train.home_age )
     print(f'correlation {r}')
     print(f'p-value {p}')
+
+########################################################
+def distribution_top_model(y_test, test_pred):    
+    # plot to visualize actual vs predicted. 
+    plt.figure(figsize=(16,8))
+    sns.set_theme('talk')
+    sns.set_style('white')
+
+    plt.hist(y_test, color='olive', alpha=.5, label="Actual ")
+    plt.hist(test_pred.poly_d3, color='orchid', alpha=.5, label="Model: Poly Degree 3")
+
+    plt.xlabel("Home Value")
+    plt.xticks(ticks=[0,500_000, 1_000_000,1_500_000,2_000_000])
+    plt.title("Distribution of Top Model")
+    plt.legend()
+    plt.show()
